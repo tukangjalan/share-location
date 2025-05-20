@@ -21,24 +21,44 @@
   </style>
 </head>
 <body>
-  <h2>Terimakasih</h2>
-  <p id="locationText">.....</p>
-  <button class="button" id="openMapBtn">Buka di Google Maps</button>
+  <h2>Berbagi Lokasi</h2>
+  <p id="locationText">Mengambil lokasi...</p>
+  <button class="button" id="openMapBtn" style="display:none;">Buka di Google Maps</button>
 
   <script>
     const params = new URLSearchParams(window.location.search);
     const lat = params.get('lat');
     const lng = params.get('lng');
 
-    if (lat && lng) {
-      const mapsUrl = https://www.google.com/maps?q=${lat},${lng};
-      document.getElementById("locationText").innerText = Lokasi: ${lat}, ${lng};
-      document.getElementById("openMapBtn").onclick = () => {
+    const locationText = document.getElementById("locationText");
+    const openMapBtn = document.getElementById("openMapBtn");
+
+    function showMapButton(latitude, longitude) {
+      const mapsUrl = https://www.google.com/maps?q=${latitude},${longitude};
+      locationText.innerText = Lokasi: ${latitude}, ${longitude};
+      openMapBtn.style.display = "inline-block";
+      openMapBtn.onclick = () => {
         window.location.href = mapsUrl;
       };
+    }
+
+    if (lat && lng) {
+      // Pakai dari parameter
+      showMapButton(lat, lng);
+    } else if ("geolocation" in navigator) {
+      // Ambil lokasi otomatis
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          const latitude = position.coords.latitude.toFixed(6);
+          const longitude = position.coords.longitude.toFixed(6);
+          showMapButton(latitude, longitude);
+        },
+        (error) => {
+          locationText.innerText = "Gagal mengambil lokasi: " + error.message;
+        }
+      );
     } else {
-      document.getElementById("locationText").innerText = "Koordinat tidak ditemukan.";
-      document.getElementById("openMapBtn").style.display = "none";
+      locationText.innerText = "Peramban tidak mendukung fitur geolokasi.";
     }
   </script>
 </body>
