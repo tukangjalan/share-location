@@ -2,63 +2,81 @@
 <html lang="id">
 <head>
   <meta charset="UTF-8">
-  <title>Berbagi Lokasi</title>
+  <title>Berbagi Lokasi dengan Peta</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
   <style>
     body {
       font-family: Arial, sans-serif;
-      padding: 20px;
+      padding: 0;
+      margin: 0;
       text-align: center;
     }
+    #map {
+      height: 400px;
+      width: 100%;
+    }
+    .info {
+      margin-top: 10px;
+    }
     .button {
+      margin-top: 10px;
       padding: 10px 20px;
       background-color: #007bff;
       color: white;
       border: none;
       cursor: pointer;
       font-size: 16px;
-      margin-top: 20px;
     }
   </style>
 </head>
 <body>
   <h2>Berbagi Lokasi</h2>
-  <p id="locationText">Mengambil lokasi...</p>
+  <div id="map"></div>
+  <div class="info" id="locationText">Memuat lokasi...</div>
   <button class="button" id="openMapBtn" style="display:none;">Buka di Google Maps</button>
 
+  <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
   <script>
     const params = new URLSearchParams(window.location.search);
-    const lat = params.get('lat');
-    const lng = params.get('lng');
+    const lat = params.get("lat");
+    const lng = params.get("lng");
 
     const locationText = document.getElementById("locationText");
     const openMapBtn = document.getElementById("openMapBtn");
 
-    function showMapButton(latitude, longitude) {
-      const mapsUrl = https://www.google.com/maps?q=${latitude},${longitude};
-      locationText.innerText = Lokasi: ${latitude}, ${longitude};
+    function showMap(lat, lng) {
+      const map = L.map('map').setView([lat, lng], 16);
+
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© OpenStreetMap contributors'
+      }).addTo(map);
+
+      L.marker([lat, lng]).addTo(map)
+        .bindPopup('Lokasi kamu')
+        .openPopup();
+
+      locationText.innerText = Lokasi: ${lat.toFixed(6)}, ${lng.toFixed(6)};
       openMapBtn.style.display = "inline-block";
       openMapBtn.onclick = () => {
-        window.location.href = mapsUrl;
+        window.location.href = https://www.google.com/maps?q=${lat},${lng};
       };
     }
 
     if (lat && lng) {
-      // Pakai dari parameter
-      showMapButton(lat, lng);
+      showMap(parseFloat(lat), parseFloat(lng));
     } else if ("geolocation" in navigator) {
-      // Ambil lokasi otomatis
       navigator.geolocation.getCurrentPosition(
-        (position) => {
-          const latitude = position.coords.latitude.toFixed(6);
-          const longitude = position.coords.longitude.toFixed(6);
-          showMapButton(latitude, longitude);
+        (pos) => {
+          const latitude = pos.coords.latitude;
+          const longitude = pos.coords.longitude;
+          showMap(latitude, longitude);
         },
-        (error) => {
-          locationText.innerText = "Gagal mengambil lokasi: " + error.message;
+        (err) => {
+          locationText.innerText = "Gagal mengambil lokasi: " + err.message;
         }
       );
     } else {
-      locationText.innerText = "Peramban tidak mendukung fitur geolokasi.";
+      locationText.innerText = "Browser tidak mendukung geolokasi.";
     }
   </script>
 </body>
